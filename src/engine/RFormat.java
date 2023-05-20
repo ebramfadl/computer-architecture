@@ -4,9 +4,9 @@ public class RFormat extends Instruction{
     private String R1;
     private String R2;
     private String R3;
-    private String shamt;
+    private int shamt;
 
-    public RFormat(String opcode, String r1, String r2, String r3, String shamt) {
+    public RFormat(String opcode, String r1, String r2, String r3, int shamt) {
         super(opcode);
         R1 = r1;
         R2 = r2;
@@ -38,11 +38,11 @@ public class RFormat extends Instruction{
         R3 = r3;
     }
 
-    public String getShamt() {
+    public int getShamt() {
         return shamt;
     }
 
-    public void setShamt(String shamt) {
+    public void setShamt(int shamt) {
         this.shamt = shamt;
     }
 

@@ -2,18 +2,18 @@ package engine;
 
 public class JFormat extends Instruction{
 
-    private String address;
+    private int address;
 
-    public JFormat(String opcode, String address) {
+    public JFormat(String opcode, int address) {
         super(opcode);
         this.address = address;
     }
 
-    public String getAddress() {
+    public int getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(int address) {
         this.address = address;
     }
 

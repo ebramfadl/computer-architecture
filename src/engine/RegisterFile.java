@@ -2,16 +2,17 @@ package engine;
 
 public class RegisterFile {
     private Register[] allRegisters;
-    private final Register R0 = new Register("R0",String.format("%32s",Integer.toBinaryString(0)).replace(' ','0'));
+    private Register R0 ;
     private Register PC;
 
     public RegisterFile(){
         allRegisters = new Register[32];
+        R0 = new Register("R0",0);
         allRegisters[0] = R0;
         for (int i = 1 ; i<32 ; i++){
-            allRegisters[i] = new Register("R"+i,String.format("%32s",Integer.toBinaryString(0)).replace(' ','0'));
+            allRegisters[i] = new Register("R"+i,0);
         }
-        PC = new Register("PC",String.format("%32s",Integer.toBinaryString(0)).replace(' ','0'));
+        PC = new Register("PC",0);
     }
 
     public Register[] getAllRegisters() {

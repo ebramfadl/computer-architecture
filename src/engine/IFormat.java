@@ -4,9 +4,9 @@ package engine;
 public class IFormat extends Instruction{
     private String R1;
     private  String R2;
-    private String immediate;
+    private int immediate;
 
-    public IFormat(String opcode, String r1, String r2, String immediate) {
+    public IFormat(String opcode, String r1, String r2, int immediate) {
         super(opcode);
         R1 = r1;
         R2 = r2;
@@ -29,11 +29,11 @@ public class IFormat extends Instruction{
         R2 = r2;
     }
 
-    public String getImmediate() {
+    public int getImmediate() {
         return immediate;
     }
 
-    public void setImmediate(String immediate) {
+    public void setImmediate(int immediate) {
         this.immediate = immediate;
     }
 
