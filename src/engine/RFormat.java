@@ -46,6 +46,52 @@ public class RFormat extends Instruction{
         this.shamt = shamt;
     }
 
+    public Integer execute(RegisterFile registerFile) throws ProgramException {
+
+        int r1 = Register.convertBitsToInt(R1,5);
+        int r2 = Register.convertBitsToInt(R2,5);
+        int r3 = Register.convertBitsToInt(R3,5);
+        int r2Value = registerFile.getAllRegisters()[r2].getValue();
+        int r3Value = registerFile.getAllRegisters()[r3].getValue();
+
+        Integer result = null;
+
+        if(this.getOpcode().equals("0000")){
+
+            result = r2Value + r3Value;
+        }
+        else if(this.getOpcode().equals("0001")){
+
+            result = r2Value - r3Value;
+        }
+        else if(this.getOpcode().equals("0010")){
+
+            result = r2Value * r3Value;
+        }
+        else if(this.getOpcode().equals("0101")){
+
+            result = r2Value & r3Value;
+        }
+        else if(this.getOpcode().equals("1000")){
+            result = r2Value << shamt ;
+        }
+        else if(this.getOpcode().equals("1001")){
+            result = r2Value >>> shamt;
+        }
+
+        return result;
+    }
+
+
+    public Integer accessMemory(int dataLocation,Memory memory,Integer registerValue) throws ProgramException{
+        return null;
+    }
+
+    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+        int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
+        registerFile.getAllRegisters()[destinationRegister].setValue(value);
+    }
+
     @Override
     public String toString(){
         String str = "=========================== R Instruction ================================"+ "\n";

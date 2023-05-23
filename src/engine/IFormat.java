@@ -37,6 +37,63 @@ public class IFormat extends Instruction{
         this.immediate = immediate;
     }
 
+    public Integer execute(RegisterFile registerFile) throws ProgramException {
+
+        int r1 = Register.convertBitsToInt(R1,5);
+        int r2 = Register.convertBitsToInt(R2,5);
+
+        int r1Value = registerFile.getAllRegisters()[r1].getValue();
+        int r2Value = registerFile.getAllRegisters()[r2].getValue();
+
+        if (getOpcode().equals("0011")){
+            return immediate;
+        }
+        else if(getOpcode().equals("0100")){
+            if(r1Value == r2Value)
+                return registerFile.getPC().getValue()+1+immediate;
+            else
+                return null;
+
+        }
+        else if(getOpcode().equals("0110")){
+            return r2Value ^ immediate;
+        }
+        else if(getOpcode().equals("1010")){
+            return r2Value + immediate;
+        }
+        else if(getOpcode().equals("1011")){
+            return r2Value + immediate;
+        }
+        return null;
+    }
+
+    public Integer accessMemory(int memoryLocation, Memory memory, Integer registerValue) throws ProgramException {
+
+        int data = Register.convertBitsToInt(memory.getContent()[memoryLocation].getValue(),32);
+        String registerBits = Register.convertIntToBits(registerValue,32);
+
+        if(getOpcode().equals("1010")){
+            return data;
+        }
+        else if(getOpcode().equals("1011")){
+            memory.getContent()[memoryLocation].setValue(registerBits);
+            return null;
+        }
+        return null;
+    }
+
+    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+        if (getOpcode().equals("0011") || getOpcode().equals("0110") || getOpcode().equals("1010")){
+            int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
+            registerFile.getAllRegisters()[destinationRegister].setValue(value);
+        }
+
+        else if(getOpcode().equals("0100")){
+            registerFile.getPC().setValue(value);
+        }
+        return;
+    }
+
     @Override
     public String toString(){
         String str = "=========================== I Instruction ================================"+ "\n";

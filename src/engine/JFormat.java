@@ -17,6 +17,27 @@ public class JFormat extends Instruction{
         this.address = address;
     }
 
+    public Integer execute(RegisterFile registerFile) throws ProgramException {
+        Register pc = registerFile.getPC();
+        String pcBits = pc.getBits().substring(0,4);
+        String addressBits = Register.convertIntToBits(address,28);
+        int result = Register.convertBitsToInt(pcBits+addressBits,32);
+
+        return result;
+
+    }
+
+
+    public Integer accessMemory(int memoryLocation,Memory memory, Integer registerValue) throws ProgramException {
+
+        return memoryLocation;
+    }
+
+    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+        registerFile.getPC().setValue(value);
+        return;
+    }
+
     @Override
     public String toString(){
         String str = "=========================== J Instruction ================================"+ "\n";

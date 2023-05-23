@@ -104,11 +104,29 @@ public class CPU {
                 instruction = new JFormat(opcode,addressInt);break;
         }
 
-        //move to execute stage
-
+        execute(instruction);
 
     }
 
+    public void execute(Instruction instruction) throws ProgramException {
+        int result = instruction.execute(registerFile);
+        memoryAccess(instruction, result);
+    }
+
+    public void memoryAccess(Instruction instruction, int executeResult) throws ProgramException {
+        Integer result = instruction.accessMemory(executeResult,memory,1);
+        if(result == null){
+            writeBack(instruction,executeResult);
+        }
+        else
+            writeBack(instruction,result);
+
+    }
+
+    public void writeBack(Instruction instruction, Integer value) throws ProgramException {
+        instruction.registerWriteBack(value,registerFile);
+        return;
+    }
 
     public static void main(String[] args) throws ProgramException {
         CPU cpu = new CPU();

@@ -18,4 +18,18 @@ public class Instruction {
     public String toString(){
         return "";
     }
+
+    public Integer execute(RegisterFile registerFile) throws ProgramException {
+        return null;
+    }
+
+    public Integer accessMemory(int memoryLocation, Memory memory, Integer registerValue) throws ProgramException {
+        return null;
+    }
+
+    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+        return;
+    }
+
+
 }
