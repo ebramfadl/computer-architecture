@@ -89,7 +89,7 @@ public class Register {
     }
 
     public String toString(){
-        return name+" : "+bits.substring(0,8)+" "+bits.substring(8,16)+" "+bits.substring(16,24)+" "+bits.substring(24,32)+" "+value;
+        return name+" : "+bits.substring(0,8)+" "+bits.substring(8,16)+" "+bits.substring(16,24)+" "+bits.substring(24,32)+" = "+value;
     }
 
 

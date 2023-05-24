@@ -13,6 +13,10 @@ public class CPU {
         populateInstructions();
     }
 
+    public static int convertBinaryToInt(String bits){
+        return Integer.parseInt(bits,2);
+    }
+
     public static String convertIntToBinary(int number, int bits){
         return String.format("%"+bits+"s",Integer.toBinaryString(number)).replace(' ','0');
     }
@@ -81,17 +85,15 @@ public class CPU {
 
         String opcode = word.getValue().substring(0,4);
         String R1 = word.getValue().substring(4,9);
-        String R2 = word.getValue().substring(10,15);
-        String R3 = word.getValue().substring(16,21);
-        String shamt = word.getValue().substring(22);
-        String immediate = word.getValue().substring(16);
+        String R2 = word.getValue().substring(9,14);
+        String R3 = word.getValue().substring(14,19);
+        String shamt = word.getValue().substring(20);
+        String immediate = word.getValue().substring(14);
         String address = word.getValue().substring(4);
 
-
-
-        int shamtInt = Register.convertBitsToInt(shamt,13);
+        int shamtInt = convertBinaryToInt(shamt);
         int immediateInt = Register.convertBitsToInt(immediate,18);
-        int addressInt = Register.convertBitsToInt(address,28);
+        int addressInt = convertBinaryToInt(address);
 
         Instruction instruction = null;
 
@@ -114,7 +116,17 @@ public class CPU {
     }
 
     public void memoryAccess(Instruction instruction, int executeResult) throws ProgramException {
-        Integer result = instruction.accessMemory(executeResult,memory,1);
+        int registerIndex = -1;
+        int registerValue = 0;
+        if(instruction instanceof RFormat || instruction instanceof IFormat) {
+            if(instruction instanceof RFormat)
+                registerIndex = convertBinaryToInt(((RFormat) instruction).getR1());
+            else
+                registerIndex = convertBinaryToInt(((IFormat) instruction).getR1());
+
+            registerValue = registerFile.getAllRegisters()[registerIndex].getValue();
+        }
+        Integer result = instruction.accessMemory(executeResult,memory,registerValue);
         if(result == null){
             writeBack(instruction,executeResult);
         }
@@ -125,11 +137,16 @@ public class CPU {
 
     public void writeBack(Instruction instruction, Integer value) throws ProgramException {
         instruction.registerWriteBack(value,registerFile);
+        registerFile.getPC().setValue(registerFile.getPC().getValue()+1);
         return;
     }
 
     public static void main(String[] args) throws ProgramException {
         CPU cpu = new CPU();
+        for (int i = 0 ; i < 3 ; i++){
+            cpu.fetch();
+        }
         System.out.println(cpu.memory.toString());
+        System.out.println(cpu.registerFile);
     }
 }

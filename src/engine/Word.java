@@ -17,7 +17,12 @@ public class Word {
     }
 
     public String toString(){
-        return value.substring(0,8)+" "+value.substring(8,16)+" "+value.substring(16,24)+" "+value.substring(24);
+        try {
+            return value.substring(0,8)+" "+value.substring(8,16)+" "+value.substring(16,24)+" "+value.substring(24) + " = " +Register.convertBitsToInt(value,32);
+        } catch (ProgramException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     public static void main(String[] args) {

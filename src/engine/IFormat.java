@@ -69,13 +69,13 @@ public class IFormat extends Instruction{
 
     public Integer accessMemory(int memoryLocation, Memory memory, Integer registerValue) throws ProgramException {
 
-        int data = Register.convertBitsToInt(memory.getContent()[memoryLocation].getValue(),32);
-        String registerBits = Register.convertIntToBits(registerValue,32);
-
         if(getOpcode().equals("1010")){
+            int data = Register.convertBitsToInt(memory.getContent()[memoryLocation].getValue(),32);
             return data;
         }
         else if(getOpcode().equals("1011")){
+
+            String registerBits = Register.convertIntToBits(registerValue,32);
             memory.getContent()[memoryLocation].setValue(registerBits);
             return null;
         }
