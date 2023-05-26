@@ -78,16 +78,16 @@ public class RFormat extends Instruction{
         else if(this.getOpcode().equals("1001")){
             result = r2Value >>> shamt;
         }
-
+        System.out.println("exec "+r2Value+" "+r3Value+" "+getOpcode()+" = "+result);
         return result;
     }
 
 
     public Integer accessMemory(int dataLocation,Memory memory,Integer registerValue) throws ProgramException{
-        return null;
+        return dataLocation;
     }
 
-    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+    public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
         registerFile.getAllRegisters()[destinationRegister].setValue(value);
     }

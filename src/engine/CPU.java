@@ -16,6 +16,7 @@ public class CPU {
     private Hashtable<Integer, Integer> memoryResult;
     private int numberOfInstructions;
     private int completedInstructions;
+    private int numberOfFetchedInstructions;
 
     private int cycleNumber;
 
@@ -31,6 +32,7 @@ public class CPU {
         cycleNumber = 1;
         numberOfInstructions = 0;
         completedInstructions = 0;
+        numberOfFetchedInstructions = 0;
         populateInstructions();
     }
 
@@ -168,106 +170,124 @@ public class CPU {
         return;
     }
 
-    public Integer getFromFetch(Hashtable<Integer,Word> hashtable, int location){
-        int i = 0;
-        for (Map.Entry<Integer,Word> entry : hashtable.entrySet()){
-            if(i == location)
-            return entry.getKey();
-        }
-        return null;
-    }
-    public Integer getFromDecode(Hashtable<Integer,Instruction> hashtable, int location){
-        int i = 0;
-        for (Map.Entry<Integer,Instruction> entry : hashtable.entrySet()){
-            if(i == location)
-                return entry.getKey();
-        }
-        return null;
-    }
-    public Integer getFromExecute(Hashtable<Integer,Integer> hashtable, int location){
-        int i = 0;
-        for (Map.Entry<Integer,Integer> entry : hashtable.entrySet()){
-            if(i == location)
-                return entry.getKey();
-        }
-        return null;
-    }
-    public Integer getFromMemory(Hashtable<Integer,Integer> hashtable, int location){
-        int i = 0;
-        for (Map.Entry<Integer,Integer> entry : hashtable.entrySet()){
-            if(i == location)
-                return entry.getKey();
-        }
-        return null;
-    }
 
     public void startProgram() throws ProgramException {
+        ArrayList<Integer> fetchedInstructions = new ArrayList<>();
+        ArrayList<Integer> decodedInstructions = new ArrayList<>();
+        ArrayList<Integer> executedInstructions = new ArrayList<>();
+        ArrayList<Integer> memoryInstructions = new ArrayList<>();
 
-        int decodeClockCyclesPerInstruction = 0;
         while (completedInstructions < numberOfInstructions){
-            Integer decodingInstructionNumber = null;
-
-            if (cycleNumber%2 == 1){
-                Word word =fetch();
-                fetchResult.put(word.getInstructionNumber(),word);
-                System.out.println("Fetching instruction "+word.getInstructionNumber());
-                decodingInstructionNumber = getFromFetch(fetchResult,fetchResult.size()-2);
-            }
-
-            else if(cycleNumber % 2 == 0){
-                decodingInstructionNumber = getFromFetch(fetchResult,fetchResult.size()-1);
-
-            }
-
-            if(decodingInstructionNumber != null) {
-                Word toBeDecoded = fetchResult.get(decodingInstructionNumber);
-                System.out.println("Decoding instruction " + decodingInstructionNumber);
-                Instruction decodeOutputInstruction = decode(toBeDecoded);
-                decodeResult.put(toBeDecoded.getInstructionNumber(), decodeOutputInstruction);
-            }
-
-            Integer executingInstructionNumber = getFromDecode(decodeResult,decodeResult.size()-2);
-
-            if(executingInstructionNumber != null) {
-                Instruction toBeExecuted = decodeResult.get(executingInstructionNumber);
-                System.out.println("Executing instruction " + executingInstructionNumber);
-                Integer executeOutput = execute(toBeExecuted);
-                executeResult.put(executingInstructionNumber, executeOutput);
-            }
-
-            if (cycleNumber % 2 == 0){
-                Integer memoryInstructionNumber = getFromExecute(executeResult,decodeResult.size()-2);
-                if(memoryInstructionNumber != null) {
-                    Integer resultBeInMemory = executeResult.get(memoryInstructionNumber);
-                    Instruction instructionToBeInMemory = decodeResult.get(memoryInstructionNumber);
-                    System.out.println("Accessing memory from instruction "+memoryInstructionNumber);
-                    Integer memoryOutput = memoryAccess(instructionToBeInMemory,resultBeInMemory);
-                    memoryResult.put(executingInstructionNumber,memoryOutput);
-                }
-            }
-
-            if(cycleNumber % 2 == 1){
-                Integer registerInstructionNumber = getFromMemory(memoryResult,memoryResult.size()-1);
-                if(registerInstructionNumber != null) {
-                    Integer resultFromMemory = memoryResult.get(registerInstructionNumber);
-                    Instruction instructionToBeInMemory = decodeResult.get(registerInstructionNumber);
-
-                    System.out.println("Write back from instruction " + registerInstructionNumber);
-                    writeBack(instructionToBeInMemory, resultFromMemory);
-                    completedInstructions++;
-                }
-            }
-
+            run(fetchedInstructions,decodedInstructions,executedInstructions,memoryInstructions);
         }
     }
 
+    public void run(ArrayList<Integer> fetchedInstructions, ArrayList<Integer> decodedInstructions, ArrayList<Integer> executedInstructions, ArrayList<Integer> memoryInstructions ) throws ProgramException{
+        System.out.println("Cycle number "+cycleNumber);
+        Integer decodingInstructionNumber = null;
+        Integer executingInstructionNumber = null;
+        Integer memoryInstructionNumber = null;
+
+        if (cycleNumber%2 == 1 && numberOfFetchedInstructions < this.numberOfInstructions){
+            Word word =fetch();
+            fetchResult.put(word.getInstructionNumber(),word);
+            fetchedInstructions.add(word.getInstructionNumber());
+            System.out.println("Fetching instruction "+word.getInstructionNumber());
+            if (fetchedInstructions.size() > 1){
+                decodingInstructionNumber = fetchedInstructions.get(fetchedInstructions.size()-2);
+            }
+            numberOfFetchedInstructions++;
+        }
+
+        if(cycleNumber % 2 == 0 ){
+            decodingInstructionNumber = fetchedInstructions.get(fetchedInstructions.size()-1);
+
+        }
+        if(cycleNumber % 2 == 1 && cycleNumber == numberOfInstructions+numberOfInstructions+1 ){
+            decodingInstructionNumber = fetchedInstructions.get(fetchedInstructions.size()-1);
+        }
+
+        if(decodingInstructionNumber != null && cycleNumber <= numberOfInstructions+numberOfInstructions+1) {
+            Word toBeDecoded = fetchResult.get(decodingInstructionNumber);
+            System.out.println("Decoding instruction " + decodingInstructionNumber);
+            Instruction decodeOutputInstruction = decode(toBeDecoded);
+            if(! decodedInstructions.contains(toBeDecoded.getInstructionNumber()))
+                decodedInstructions.add(toBeDecoded.getInstructionNumber());
+            decodeResult.put(toBeDecoded.getInstructionNumber(), decodeOutputInstruction);
+        }
+
+
+        if( decodedInstructions.size() > 1 ){
+            if(cycleNumber > numberOfInstructions+numberOfInstructions+1) {
+                executingInstructionNumber = decodedInstructions.get(decodedInstructions.size() - 1);
+            }
+            else
+                executingInstructionNumber = decodedInstructions.get(decodedInstructions.size() - 2);
+
+        }
+
+        if(executingInstructionNumber != null && cycleNumber >= 4 && cycleNumber <= numberOfInstructions+numberOfInstructions+3) {
+            Instruction toBeExecuted = decodeResult.get(executingInstructionNumber);
+            System.out.println(toBeExecuted);
+            System.out.println("Executing instruction " + executingInstructionNumber);
+            Integer executeOutput = execute(toBeExecuted);
+            System.out.println("Result inst "+executingInstructionNumber+" = "+executeOutput);
+            if(! executedInstructions.contains(executingInstructionNumber))
+                executedInstructions.add(executingInstructionNumber);
+            if(executeOutput == null)
+                executeResult.put(executingInstructionNumber, -1);
+            else
+                executeResult.put(executingInstructionNumber, executeOutput);
+        }
+
+        if(executedInstructions.size() >1 ){
+            if(cycleNumber > numberOfInstructions+numberOfInstructions+3)
+                memoryInstructionNumber = executedInstructions.get(executedInstructions.size()-1);
+            else
+                memoryInstructionNumber = executedInstructions.get(executedInstructions.size()-2);
+        }
+
+        if (cycleNumber % 2 == 0 && cycleNumber >= 6 && cycleNumber <= (numberOfInstructions*2)+4){
+
+            if(memoryInstructionNumber != null) {
+                Integer resultBeInMemory = executeResult.get(memoryInstructionNumber);
+                Instruction instructionToBeInMemory = decodeResult.get(memoryInstructionNumber);
+                System.out.println("Accessing memory from instruction "+memoryInstructionNumber);
+                Integer memoryOutput = memoryAccess(instructionToBeInMemory,resultBeInMemory);
+//                System.out.println("memory output "+memoryOutput);
+                if(!memoryInstructions.contains(memoryInstructionNumber))
+                    memoryInstructions.add(memoryInstructionNumber);
+                if(memoryOutput == null)
+                    memoryResult.put(memoryInstructionNumber,-1);
+                else
+                    memoryResult.put(memoryInstructionNumber,memoryOutput);
+            }
+        }
+
+        if(cycleNumber % 2 == 1 && cycleNumber >= 7 && cycleNumber <= (numberOfInstructions*2)+5){
+            if(completedInstructions >= numberOfInstructions)
+                return;
+            Integer registerInstructionNumber = memoryInstructions.get(memoryResult.size()-1);
+            if(registerInstructionNumber != null) {
+                Integer resultFromMemory = memoryResult.get(registerInstructionNumber);
+                Instruction instructionToBeInMemory = decodeResult.get(registerInstructionNumber);
+
+                System.out.println("Write back from instruction " + registerInstructionNumber);
+                System.out.println("Result mem "+resultFromMemory);
+                writeBack(instructionToBeInMemory, resultFromMemory);
+
+                completedInstructions++;
+            }
+        }
+        cycleNumber++;
+    }
     public static void main(String[] args) throws ProgramException {
         CPU cpu = new CPU();
 //        for (int i = 0 ; i < 3 ; i++){
 //            cpu.fetch();
 //        }
-
-        System.out.println(cpu.memory.toString());
+        cpu.startProgram();
+//        System.out.println(cpu.memory.toString());
         System.out.println(cpu.registerFile);
     }
 }

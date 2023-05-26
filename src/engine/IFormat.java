@@ -79,10 +79,11 @@ public class IFormat extends Instruction{
             memory.getContent()[memoryLocation].setValue(registerBits);
             return null;
         }
-        return null;
+        return memoryLocation;
+
     }
 
-    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+    public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         if (getOpcode().equals("0011") || getOpcode().equals("0110") || getOpcode().equals("1010")){
             int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
             registerFile.getAllRegisters()[destinationRegister].setValue(value);

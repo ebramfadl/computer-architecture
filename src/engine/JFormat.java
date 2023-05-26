@@ -33,7 +33,7 @@ public class JFormat extends Instruction{
         return memoryLocation;
     }
 
-    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+    public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         registerFile.getPC().setValue(value);
         return;
     }

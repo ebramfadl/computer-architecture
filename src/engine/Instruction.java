@@ -27,7 +27,7 @@ public class Instruction {
         return null;
     }
 
-    public void registerWriteBack(int value, RegisterFile registerFile) throws ProgramException {
+    public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         return;
     }
 
