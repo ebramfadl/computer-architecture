@@ -2,10 +2,11 @@ package engine;
 
 public class Word {
     private String value;
+    private Integer instructionNumber;
 
     public Word(){
         this.value = String.format("%32s",Integer.toBinaryString(0)).replace(' ','0');
-
+        instructionNumber = null;
     }
 
     public String getValue() {
@@ -14,6 +15,14 @@ public class Word {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public Integer getInstructionNumber() {
+        return instructionNumber;
+    }
+
+    public void setInstructionNumber(Integer instructionNumber) {
+        this.instructionNumber = instructionNumber;
     }
 
     public String toString(){

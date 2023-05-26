@@ -1,15 +1,36 @@
 package engine;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class CPU {
 
     private Memory memory;
     private RegisterFile registerFile;
 
+    private Hashtable<Integer, String> allInstructions;
+    private Hashtable<Integer, Word> fetchResult;
+    private Hashtable<Integer, Instruction> decodeResult;
+    private Hashtable<Integer, Integer> executeResult;
+    private Hashtable<Integer, Integer> memoryResult;
+    private int numberOfInstructions;
+    private int completedInstructions;
+
+    private int cycleNumber;
+
     public CPU() throws ProgramException {
         memory = new Memory();
         registerFile = new RegisterFile();
+        fetchResult = new Hashtable<>();
+        decodeResult = new Hashtable<>();
+        executeResult = new Hashtable<>();
+        memoryResult = new Hashtable<>();
+        allInstructions = new Hashtable<>();
+
+        cycleNumber = 1;
+        numberOfInstructions = 0;
+        completedInstructions = 0;
         populateInstructions();
     }
 
@@ -71,17 +92,21 @@ public class CPU {
                 result += Register.convertIntToBits(Integer.parseInt(str[1]),28);
             }
 
+            numberOfInstructions++;
+            allInstructions.put(numberOfInstructions,instructions.get(i).toString());
             memory.getContent()[i].setValue(result);
+            memory.getContent()[i].setInstructionNumber(numberOfInstructions);
 
         }
     }
 
-    public void fetch() throws ProgramException {
+    public Word fetch() throws ProgramException {
         Word word = (Word)memory.getContent()[registerFile.getPC().getValue()];
-        decode(word);
+        registerFile.getPC().setValue(registerFile.getPC().getValue()+1);
+        return word;
     }
 
-    public void decode(Word word) throws ProgramException {
+    public Instruction decode(Word word) throws ProgramException {
 
         String opcode = word.getValue().substring(0,4);
         String R1 = word.getValue().substring(4,9);
@@ -106,16 +131,17 @@ public class CPU {
                 instruction = new JFormat(opcode,addressInt);break;
         }
 
-        execute(instruction);
+        return instruction;
 
     }
 
-    public void execute(Instruction instruction) throws ProgramException {
+    public Integer execute(Instruction instruction) throws ProgramException {
         int result = instruction.execute(registerFile);
-        memoryAccess(instruction, result);
+//        memoryAccess(instruction, result);
+        return result;
     }
 
-    public void memoryAccess(Instruction instruction, int executeResult) throws ProgramException {
+    public Integer memoryAccess(Instruction instruction, int executeResult) throws ProgramException {
         int registerIndex = -1;
         int registerValue = 0;
         if(instruction instanceof RFormat || instruction instanceof IFormat) {
@@ -127,25 +153,120 @@ public class CPU {
             registerValue = registerFile.getAllRegisters()[registerIndex].getValue();
         }
         Integer result = instruction.accessMemory(executeResult,memory,registerValue);
-        if(result == null){
-            writeBack(instruction,executeResult);
-        }
-        else
-            writeBack(instruction,result);
+//        if(result == null){
+//            writeBack(instruction,executeResult);
+//        }
+//        else
+//            writeBack(instruction,result);
+        return result;
 
     }
 
     public void writeBack(Instruction instruction, Integer value) throws ProgramException {
         instruction.registerWriteBack(value,registerFile);
-        registerFile.getPC().setValue(registerFile.getPC().getValue()+1);
+//        registerFile.getPC().setValue(registerFile.getPC().getValue()+1);
         return;
+    }
+
+    public Integer getFromFetch(Hashtable<Integer,Word> hashtable, int location){
+        int i = 0;
+        for (Map.Entry<Integer,Word> entry : hashtable.entrySet()){
+            if(i == location)
+            return entry.getKey();
+        }
+        return null;
+    }
+    public Integer getFromDecode(Hashtable<Integer,Instruction> hashtable, int location){
+        int i = 0;
+        for (Map.Entry<Integer,Instruction> entry : hashtable.entrySet()){
+            if(i == location)
+                return entry.getKey();
+        }
+        return null;
+    }
+    public Integer getFromExecute(Hashtable<Integer,Integer> hashtable, int location){
+        int i = 0;
+        for (Map.Entry<Integer,Integer> entry : hashtable.entrySet()){
+            if(i == location)
+                return entry.getKey();
+        }
+        return null;
+    }
+    public Integer getFromMemory(Hashtable<Integer,Integer> hashtable, int location){
+        int i = 0;
+        for (Map.Entry<Integer,Integer> entry : hashtable.entrySet()){
+            if(i == location)
+                return entry.getKey();
+        }
+        return null;
+    }
+
+    public void startProgram() throws ProgramException {
+
+        int decodeClockCyclesPerInstruction = 0;
+        while (completedInstructions < numberOfInstructions){
+            Integer decodingInstructionNumber = null;
+
+            if (cycleNumber%2 == 1){
+                Word word =fetch();
+                fetchResult.put(word.getInstructionNumber(),word);
+                System.out.println("Fetching instruction "+word.getInstructionNumber());
+                decodingInstructionNumber = getFromFetch(fetchResult,fetchResult.size()-2);
+            }
+
+            else if(cycleNumber % 2 == 0){
+                decodingInstructionNumber = getFromFetch(fetchResult,fetchResult.size()-1);
+
+            }
+
+            if(decodingInstructionNumber != null) {
+                Word toBeDecoded = fetchResult.get(decodingInstructionNumber);
+                System.out.println("Decoding instruction " + decodingInstructionNumber);
+                Instruction decodeOutputInstruction = decode(toBeDecoded);
+                decodeResult.put(toBeDecoded.getInstructionNumber(), decodeOutputInstruction);
+            }
+
+            Integer executingInstructionNumber = getFromDecode(decodeResult,decodeResult.size()-2);
+
+            if(executingInstructionNumber != null) {
+                Instruction toBeExecuted = decodeResult.get(executingInstructionNumber);
+                System.out.println("Executing instruction " + executingInstructionNumber);
+                Integer executeOutput = execute(toBeExecuted);
+                executeResult.put(executingInstructionNumber, executeOutput);
+            }
+
+            if (cycleNumber % 2 == 0){
+                Integer memoryInstructionNumber = getFromExecute(executeResult,decodeResult.size()-2);
+                if(memoryInstructionNumber != null) {
+                    Integer resultBeInMemory = executeResult.get(memoryInstructionNumber);
+                    Instruction instructionToBeInMemory = decodeResult.get(memoryInstructionNumber);
+                    System.out.println("Accessing memory from instruction "+memoryInstructionNumber);
+                    Integer memoryOutput = memoryAccess(instructionToBeInMemory,resultBeInMemory);
+                    memoryResult.put(executingInstructionNumber,memoryOutput);
+                }
+            }
+
+            if(cycleNumber % 2 == 1){
+                Integer registerInstructionNumber = getFromMemory(memoryResult,memoryResult.size()-1);
+                if(registerInstructionNumber != null) {
+                    Integer resultFromMemory = memoryResult.get(registerInstructionNumber);
+                    Instruction instructionToBeInMemory = decodeResult.get(registerInstructionNumber);
+
+                    System.out.println("Write back from instruction " + registerInstructionNumber);
+                    writeBack(instructionToBeInMemory, resultFromMemory);
+                    completedInstructions++;
+                }
+            }
+
+        }
     }
 
     public static void main(String[] args) throws ProgramException {
         CPU cpu = new CPU();
-        for (int i = 0 ; i < 3 ; i++){
-            cpu.fetch();
-        }
+//        for (int i = 0 ; i < 3 ; i++){
+//            cpu.fetch();
+//        }
+
         System.out.println(cpu.memory.toString());
         System.out.println(cpu.registerFile);
     }
