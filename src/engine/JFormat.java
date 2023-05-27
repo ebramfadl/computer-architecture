@@ -35,6 +35,8 @@ public class JFormat extends Instruction{
 
     public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         registerFile.getPC().setValue(value);
+        System.out.println("Updating register PC to be = "+value);
+
         return;
     }
 

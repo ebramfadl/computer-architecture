@@ -139,7 +139,6 @@ public class CPU {
 
     public Integer execute(Instruction instruction) throws ProgramException {
         int result = instruction.execute(registerFile);
-//        memoryAccess(instruction, result);
         return result;
     }
 
@@ -155,18 +154,13 @@ public class CPU {
             registerValue = registerFile.getAllRegisters()[registerIndex].getValue();
         }
         Integer result = instruction.accessMemory(executeResult,memory,registerValue);
-//        if(result == null){
-//            writeBack(instruction,executeResult);
-//        }
-//        else
-//            writeBack(instruction,result);
+
         return result;
 
     }
 
     public void writeBack(Instruction instruction, Integer value) throws ProgramException {
         instruction.registerWriteBack(value,registerFile);
-//        registerFile.getPC().setValue(registerFile.getPC().getValue()+1);
         return;
     }
 
@@ -177,7 +171,7 @@ public class CPU {
         ArrayList<Integer> executedInstructions = new ArrayList<>();
         ArrayList<Integer> memoryInstructions = new ArrayList<>();
 
-        while (completedInstructions < numberOfInstructions){
+        while (completedInstructions < numberOfInstructions || registerFile.getPC().getValue() < numberOfInstructions){
             run(fetchedInstructions,decodedInstructions,executedInstructions,memoryInstructions);
         }
     }
@@ -228,10 +222,8 @@ public class CPU {
 
         if(executingInstructionNumber != null && cycleNumber >= 4 && cycleNumber <= numberOfInstructions+numberOfInstructions+3) {
             Instruction toBeExecuted = decodeResult.get(executingInstructionNumber);
-            System.out.println(toBeExecuted);
             System.out.println("Executing instruction " + executingInstructionNumber);
             Integer executeOutput = execute(toBeExecuted);
-            System.out.println("Result inst "+executingInstructionNumber+" = "+executeOutput);
             if(! executedInstructions.contains(executingInstructionNumber))
                 executedInstructions.add(executingInstructionNumber);
             if(executeOutput == null)
@@ -273,7 +265,7 @@ public class CPU {
                 Instruction instructionToBeInMemory = decodeResult.get(registerInstructionNumber);
 
                 System.out.println("Write back from instruction " + registerInstructionNumber);
-                System.out.println("Result mem "+resultFromMemory);
+//                System.out.println("Result mem "+resultFromMemory);
                 writeBack(instructionToBeInMemory, resultFromMemory);
 
                 completedInstructions++;
@@ -283,11 +275,9 @@ public class CPU {
     }
     public static void main(String[] args) throws ProgramException {
         CPU cpu = new CPU();
-//        for (int i = 0 ; i < 3 ; i++){
-//            cpu.fetch();
-//        }
+
         cpu.startProgram();
-//        System.out.println(cpu.memory.toString());
+        System.out.println(cpu.memory.toString());
         System.out.println(cpu.registerFile);
     }
 }

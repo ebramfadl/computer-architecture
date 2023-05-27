@@ -71,11 +71,13 @@ public class IFormat extends Instruction{
 
         if(getOpcode().equals("1010")){
             int data = Register.convertBitsToInt(memory.getContent()[memoryLocation].getValue(),32);
+            System.out.println("Loading from memory["+memoryLocation+"] : "+data);
             return data;
         }
         else if(getOpcode().equals("1011")){
 
             String registerBits = Register.convertIntToBits(registerValue,32);
+            System.out.println("Storing in memory["+memoryLocation+"]"+ " : "+registerValue);
             memory.getContent()[memoryLocation].setValue(registerBits);
             return null;
         }
@@ -87,11 +89,15 @@ public class IFormat extends Instruction{
         if (getOpcode().equals("0011") || getOpcode().equals("0110") || getOpcode().equals("1010")){
             int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
             registerFile.getAllRegisters()[destinationRegister].setValue(value);
+            System.out.println("Updating register R"+destinationRegister+ " to be = "+value);
+
         }
 
         else if(getOpcode().equals("0100")){
+            System.out.println("Updating PC to be "+value);
             registerFile.getPC().setValue(value);
         }
+
         return;
     }
 

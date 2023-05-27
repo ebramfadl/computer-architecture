@@ -78,7 +78,7 @@ public class RFormat extends Instruction{
         else if(this.getOpcode().equals("1001")){
             result = r2Value >>> shamt;
         }
-        System.out.println("exec "+r2Value+" "+r3Value+" "+getOpcode()+" = "+result);
+//        System.out.println("exec "+r2Value+" "+r3Value+" "+getOpcode()+" = "+result);
         return result;
     }
 
@@ -90,6 +90,7 @@ public class RFormat extends Instruction{
     public void registerWriteBack(Integer value, RegisterFile registerFile) throws ProgramException {
         int destinationRegister = Register.convertBitsToInt(this.getR1(),5);
         registerFile.getAllRegisters()[destinationRegister].setValue(value);
+        System.out.println("Updating register R"+destinationRegister+ " to be = "+value);
     }
 
     @Override

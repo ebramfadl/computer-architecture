@@ -24,8 +24,9 @@ public class Register {
         return value;
     }
 
-    public void setValue(int value) {
+    public void setValue(int value) throws ProgramException {
         this.value = value;
+        setBits(convertIntToBits(value,32));
     }
 
     public String getBits() {

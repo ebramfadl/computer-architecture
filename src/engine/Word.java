@@ -6,7 +6,7 @@ public class Word {
 
     public Word(){
         this.value = String.format("%32s",Integer.toBinaryString(0)).replace(' ','0');
-        instructionNumber = null;
+        instructionNumber = -1;
     }
 
     public String getValue() {
